@@ -30,10 +30,15 @@
       font-weight: bold;
       color: #555;
     }
+    small {
+      display: block;
+      margin-top: 0.3rem;
+      margin-bottom: 0.5rem;
+      color: #777;
+    }
     input {
       width: 100%;
       padding: 0.5rem;
-      margin-top: 0.3rem;
       border: 1px solid #ccc;
       border-radius: 4px;
       font-size: 1rem;
@@ -62,25 +67,48 @@
       color: #004d40;
       display: none;
     }
+    .explicacao {
+      background-color: #ffffff;
+      border-left: 4px solid #00796b;
+      padding: 1rem;
+      margin-bottom: 2rem;
+      color: #333;
+    }
   </style>
 </head>
 <body>
   <h1>Simulador de Previdência Privada</h1>
 
+  <div class="explicacao">
+    <p><strong>Sobre as taxas de rentabilidade:</strong></p>
+    <p>As taxas de rentabilidade anual podem variar conforme o perfil de investimento:</p>
+    <ul>
+      <li><strong>Conservador:</strong> 4% a 6% ao ano (ex: renda fixa)</li>
+      <li><strong>Moderado:</strong> 6% a 8% ao ano (ex: fundos balanceados)</li>
+      <li><strong>Agressivo:</strong> 8% a 12% ou mais ao ano (ex: ações, fundos mais arriscados)</li>
+    </ul>
+    <p>Use uma estimativa realista de acordo com seu perfil.</p>
+  </div>
+
   <div class="form-group">
     <label for="idade">Sua idade atual:</label>
+    <small>Informe quantos anos você tem hoje</small>
     <input type="number" id="idade" min="18" max="100" required>
 
     <label for="aposentadoria">Idade desejada para aposentadoria:</label>
+    <small>Com que idade você gostaria de parar de trabalhar</small>
     <input type="number" id="aposentadoria" min="50" max="100" required>
 
-    <label for="aporte">Aporte mensal inicial (R$):</label>
+    <label for="investimentoInicial">Investimento inicial (R$):</label>
+    <small>Valor que você já tem guardado ou quer aplicar agora</small>
+    <input type="number" id="investimentoInicial" min="0" value="0">
+
+    <label for="aporte">Aporte mensal (R$):</label>
+    <small>Valor que pretende investir todos os meses</small>
     <input type="number" id="aporte" min="1" required>
 
-    <label for="incremento">Aumento anual do aporte (R$):</label>
-    <input type="number" id="incremento" min="0" required>
-
     <label for="taxa">Rentabilidade anual estimada (%):</label>
+    <small>Use entre 4% e 12% ao ano</small>
     <input type="number" id="taxa" min="0" step="0.1" required>
 
     <button type="button" onclick="calcularPrevidencia()">Calcular</button>
@@ -93,33 +121,35 @@
       const idade = document.getElementById('idade').value;
       const aposentadoria = document.getElementById('aposentadoria').value;
       const aporte = document.getElementById('aporte').value;
-      const incremento = document.getElementById('incremento').value;
       const taxa = document.getElementById('taxa').value;
+      const inicial = document.getElementById('investimentoInicial').value;
 
-      if (!idade || !aposentadoria || !aporte || !incremento || !taxa) {
+      if (!idade || !aposentadoria || !aporte || !taxa) {
         alert('Por favor, preencha todos os campos corretamente.');
         return;
       }
 
       const idadeAtual = parseInt(idade);
       const idadeAposentadoria = parseInt(aposentadoria);
-      const aporteInicial = parseFloat(aporte);
-      const incrementoAnual = parseFloat(incremento);
+      const aporteMensal = parseFloat(aporte);
       const taxaAnual = parseFloat(taxa) / 100;
+      const taxaMensal = Math.pow(1 + taxaAnual, 1 / 12) - 1;
+      const valorInicial = parseFloat(inicial);
 
       const anos = idadeAposentadoria - idadeAtual;
-      let saldo = 0;
-      let aporteAtual = aporteInicial;
+      let saldo = valorInicial;
 
       for (let i = 0; i < anos; i++) {
         saldo *= 1 + taxaAnual;
-        saldo += aporteAtual * 12;
-        aporteAtual += incrementoAnual;
+        saldo += aporteMensal * 12;
       }
+
+      const mesesRenda = 15 * 12;
+      const rendaMensal = (saldo * taxaMensal) / (1 - Math.pow(1 + taxaMensal, -mesesRenda));
 
       const resultado = document.getElementById('resultado');
       resultado.style.display = 'block';
-      resultado.textContent = `Valor acumulado até os ${idadeAposentadoria} anos: R$ ${saldo.toFixed(2).replace('.', ',')}`;
+      resultado.innerHTML = `Valor acumulado até os ${idadeAposentadoria} anos:<br><strong>R$ ${saldo.toFixed(2).replace('.', ',')}</strong><br><br>Renda mensal estimada por 15 anos após aposentadoria:<br><strong>R$ ${rendaMensal.toFixed(2).replace('.', ',')}</strong>`;
     }
   </script>
 </body>
